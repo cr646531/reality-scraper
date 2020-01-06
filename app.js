@@ -63,7 +63,7 @@ app.get('/', async (req, res) => {
                             // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
                             // portal links begin with "Portal" in their title
                             if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
-                                console.log(curr.attribs.title);
+                                console.log(curr);
                                 links.push([curr.attribs.title, curr.attribs.href]);
                             }
                         } 
@@ -172,10 +172,10 @@ app.get('/bidirectional', async (req, res) => {
 
     var output = '';
 
-    var oneUrl = '/wiki/Johnny_Depp';
+    var oneUrl = '/wiki/Lil_Jon';
     //var twoUrl = '/wiki/Reality';
     //var twoUrl = '/wiki/Winona_Ryder';
-    var twoUrl = '/wiki/Hey_Arnold!';
+    var twoUrl = '/wiki/Brick';
 
     var startUrl = 'https://en.wikipedia.org' + oneUrl;
     var endUrl = 'https://en.wikipedia.org' + twoUrl;
@@ -212,14 +212,14 @@ app.get('/bidirectional', async (req, res) => {
                 var children = paragraphs[i].children;
                 for(var j = 0; j < children.length; j++){
 
-                    // if the link does NOT go to a definition or portal - add it to the list
+                    // if the link does NOT go to a definition, portal, or redirect - add it to the list
                     var curr = children[j];
                     if(curr.name == 'a') {
 
                         if(curr.attribs.title){
                             // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
                             // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1 && curr.attribs.class !== 'mw-redirect'){
                                 startQueue.push([curr.attribs.title, curr.attribs.href, startUrl.slice(24)]);
                             }
                         } 
@@ -284,7 +284,7 @@ app.get('/bidirectional', async (req, res) => {
                         if(curr.attribs.title){
                             // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
                             // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1 && curr.attribs.class !== 'mw-redirect'){
                                 endQueue.push([curr.attribs.title, curr.attribs.href, endUrl.slice(24)]);
                             }
                         } 
@@ -333,9 +333,11 @@ app.get('/bidirectional', async (req, res) => {
 
     console.log(search);
 
+    var searchVisited = [];
+
     while(search !== oneUrl) {
         // find the index of search within the start queue
-        found = startQueue.find(element => element[1] == search);
+        found = startQueue.find(element => element[1] == search && !searchVisited.includes(element[1]));
 
         if(found) {
             startArray.unshift(found);
@@ -352,6 +354,7 @@ app.get('/bidirectional', async (req, res) => {
                 }
             }
         }
+        searchVisited.push(search);
     }
 
     // find path from check to endUrl
@@ -360,10 +363,11 @@ app.get('/bidirectional', async (req, res) => {
     var endArray = [];
     var index;
     var found;
+    searchVisited = [];
 
     while(search !== twoUrl) {
         // find the index of search within the start queue
-        found = endQueue.find(element => element[1] == search);
+        found = endQueue.find(element => element[1] == search && !searchVisited.includes(element[1]));
 
         if(found) {
             endArray.push(found);
@@ -380,29 +384,40 @@ app.get('/bidirectional', async (req, res) => {
                 }
             }
         }
+        searchVisited.push(search);
     }
 
 
-    // console.log('\n\n\n\n--------------\n\n\n\n');
-    // for(var i = 0; i < startArray.length; i++){
-    //     console.log(startArray[i]);
-    // }
+    var start = oneUrl.slice(6);
+    var copyStart = "";
 
+    for(var i = 0; i < start.length; i++){
+        if(start[i] == '_'){
+            copyStart += ' ';
+        } else {
+            copyStart += start[i];
+        }
 
+    }
 
-    // console.log('\n\n\n\n--------------\n\n\n\n');
-    // for(var i = 0; i < endArray.length; i++){
-    //     console.log(endArray[i]);
-    // }
+    var end = twoUrl.slice(6);
+    var copyEnd = "";
+    for(var i = 0; i < end.length; i++){
+        if(end[i] == '_'){
+            copyEnd += ' ';
+        } else {
+            copyEnd += end[i];
+        }
+    }
 
-    var output = 'https://en.wikipedia.org' + oneUrl;
+    var output = copyStart;
     for(var i = 0; i < startArray.length; i++){
-        output = output + '   ----->   https://en.wikipedia.org' + startArray[i][1]; 
+        output = output + '   ----->   ' + startArray[i][0]; 
     }
     for(var i = 1; i < endArray.length; i++){
-        output = output + '   <-----   https://en.wikipedia.org' + endArray[i][1];
+        output = output + '   <-----   ' + endArray[i][0];
     }
-    output = output + '   <-----   https://en.wikipedia.org' + twoUrl;
+    output = output + '   <-----   ' + copyEnd;
 
 
 

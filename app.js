@@ -32,6 +32,7 @@ app.get('/', async (req, res) => {
     var output = '';
     var counter = 0;
     var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
+    //var url = 'https://en.wikipedia.org/wiki/Ren%C3%A9_Descartes'
 
     var visited = [];
 
@@ -53,14 +54,15 @@ app.get('/', async (req, res) => {
             var children = paragraphs[i].children;
             for(var j = 0; j < children.length; j++){
 
-                // if the link does NOT go to a definition or link to section of the page - add it to the list
+                // if the link does NOT go to a definition or portal - add it to the list
                 var curr = children[j];
                 if(curr.name == 'a') {
 
-                    // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
                     if(curr.attribs.title){
-                        if(curr.attribs.title.indexOf('wikt') == -1){
-                            // console.log(curr.attribs.href);
+                        // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
+                        // portal links begin with "Portal" in their title
+                        if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+                            console.log(curr.attribs.title);
                             links.push([curr.attribs.title, curr.attribs.href]);
                         }
                     } 
@@ -83,7 +85,7 @@ app.get('/', async (req, res) => {
             }
         }
 
-        // console.log('\n\n\n\n');
+        console.log('\n\n\n\n');
         counter++;
     }
 

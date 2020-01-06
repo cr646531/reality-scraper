@@ -32,13 +32,12 @@ app.get('/', async (req, res) => {
     var output = '';
     var counter = 0;
     var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
-    //var url = 'https://en.wikipedia.org/wiki/Ren%C3%A9_Descartes'
+    
 
     var visited = [];
 
-
     // for testing purposes, only go 5 pages deep
-    while(counter < 20) {
+    while(url !== 'https://en.wikipedia.org/wiki/Reality') {
 
         // grab the html for the page
         var $ = await fetchData(url);
@@ -50,22 +49,27 @@ app.get('/', async (req, res) => {
         // go through paragraphs and find the children of each
         for(var i = 0; i < paragraphs.length; i++){
 
-            // go through children and find the links of each
-            var children = paragraphs[i].children;
-            for(var j = 0; j < children.length; j++){
+            // ignore paragraphs that are children of tables
+            // the tables come before the main text on a Wikipedia page, and we want to ignore those
+            if(paragraphs[i].parent.name !== 'td'){
 
-                // if the link does NOT go to a definition or portal - add it to the list
-                var curr = children[j];
-                if(curr.name == 'a') {
+                // go through children and find the links of each
+                var children = paragraphs[i].children;
+                for(var j = 0; j < children.length; j++){
 
-                    if(curr.attribs.title){
-                        // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
-                        // portal links begin with "Portal" in their title
-                        if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
-                            console.log(curr.attribs.title);
-                            links.push([curr.attribs.title, curr.attribs.href]);
-                        }
-                    } 
+                    // if the link does NOT go to a definition or portal - add it to the list
+                    var curr = children[j];
+                    if(curr.name == 'a') {
+
+                        if(curr.attribs.title){
+                            // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
+                            // portal links begin with "Portal" in their title
+                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+                                console.log(curr.attribs.title);
+                                links.push([curr.attribs.title, curr.attribs.href]);
+                            }
+                        } 
+                    }
                 }
             }
         }

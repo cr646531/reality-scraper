@@ -19,65 +19,14 @@ const fetchData = async (url) => {
   return cheerio.load(result.data);
 };
 
-
 app.get('/', async (req, res) => {
-    console.log('Fetching data');
-    var $ = await fetchData(siteUrl);
-
-    var links = $('a', '.mw-parser-output');
-
-    for(var i = 0; i < 20; i++){
-        // if the link has a class, it's a redirect
-        if(!links[i].attribs.class) {
-            // if the link has no title, it's a citation
-            if(links[i].attribs.title) {
-                console.log(links[i].attribs.title);
-
-                // set the next url
-                nextUrl = `https://en.wikipedia.org/${links[i].attribs.href}`;
-                break;
-            }
-        }
-    }
-
-    counter = 0;
-
-    while(counter < 20) {
-
-        $ = await fetchData(nextUrl);
-        links = $('a', '.mw-parser-output');
-
-        for(var i = 0; i < 5; i++){
-
-            // if the link has a class, it's a redirect
-            if(!links[i].attribs.class) {
-                // if the link has no title, it's a citation
-                if(links[i].attribs.title) {
-                    console.log(links[i].attribs.title);
-    
-                    // set the next url
-                    nextUrl = `https://en.wikipedia.org/${links[i].attribs.href}`;
-                    break;
-                }
-            }
-        }
-        counter++;
-    }
-    
-    res.send('test');
-
-    //redirect to new page with the next async request
-});
-
-
-
-
-app.get('/philosophy', async (req, res) => {
     console.log('Fetching data');
 
     var output = '';
     var counter = 0;
     var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
+
+    var visited = [];
 
 
     // for testing purposes, only go 5 pages deep
@@ -104,7 +53,7 @@ app.get('/philosophy', async (req, res) => {
                     // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
                     if(curr.attribs.title){
                         if(curr.attribs.title.indexOf('wikt') == -1){
-                            console.log(curr.attribs.href);
+                            // console.log(curr.attribs.href);
                             links.push([curr.attribs.title, curr.attribs.href]);
                         }
                     } 
@@ -112,7 +61,7 @@ app.get('/philosophy', async (req, res) => {
             }
         }
 
-        console.log('\n\n\n\n');
+        // console.log('\n\n\n\n');
 
         output += `${links[0][0]} ------> `;
 

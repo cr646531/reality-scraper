@@ -19,6 +19,13 @@ const fetchData = async (url) => {
   return cheerio.load(result.data);
 };
 
+
+/* 
+
+MAIN ROUTE
+
+*/
+
 app.get('/', async (req, res) => {
     console.log('Fetching data');
 
@@ -61,12 +68,22 @@ app.get('/', async (req, res) => {
             }
         }
 
+        // go through the list of links, find the first link that has NOT already been visited, and go there
+        for(var i = 0; i < links.length; i++){
+
+            // check to see if the link has been visited
+            var flag = visited.find(element => element == links[i][1]);
+
+            // if the link has not been visited, add it to the history and go there
+            if(!flag) {
+                visited.push(links[i][1]);
+                url = 'https://en.wikipedia.org' + links[i][1];
+                output += `${links[i][0]} ------> `;
+                break;
+            }
+        }
+
         // console.log('\n\n\n\n');
-
-        output += `${links[0][0]} ------> `;
-
-        // visit the first link and repeat
-        url = 'https://en.wikipedia.org' + links[0][1];
         counter++;
     }
 

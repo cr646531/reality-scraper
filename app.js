@@ -6,6 +6,8 @@ const cheerio = require("cheerio");
 
 const siteUrl = "https://en.wikipedia.org/wiki/Reality";
 
+const { createQueue } = require('./funcs.js');
+
 //var nextUrl;
 
 
@@ -26,141 +28,141 @@ MAIN ROUTE
 
 */
 
-app.get('/', async (req, res) => {
-    console.log('Fetching data');
+// app.get('/', async (req, res) => {
+//     console.log('Fetching data');
 
-    var output = '';
-    var counter = 0;
-    var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
+//     var output = '';
+//     var counter = 0;
+//     var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
 
-    var visited = [];
+//     var visited = [];
 
-    while(url !== 'https://en.wikipedia.org/wiki/Reality') {
+//     while(url !== 'https://en.wikipedia.org/wiki/Reality') {
 
-        // grab the html for the page
-        var $ = await fetchData(url);
+//         // grab the html for the page
+//         var $ = await fetchData(url);
 
-        // grab an array of all the paragraphs on the page - this is where we want to search for links
-        var paragraphs = $('p', '.mw-parser-output');
-        var links = [];
+//         // grab an array of all the paragraphs on the page - this is where we want to search for links
+//         var paragraphs = $('p', '.mw-parser-output');
+//         var links = [];
 
-        // go through paragraphs and find the children of each
-        for(var i = 0; i < paragraphs.length; i++){
+//         // go through paragraphs and find the children of each
+//         for(var i = 0; i < paragraphs.length; i++){
 
-            // ignore paragraphs that are children of tables
-            // the tables come before the main text on a Wikipedia page, and we want to ignore those
-            if(paragraphs[i].parent.name !== 'td'){
+//             // ignore paragraphs that are children of tables
+//             // the tables come before the main text on a Wikipedia page, and we want to ignore those
+//             if(paragraphs[i].parent.name !== 'td'){
 
-                // go through children and find the links of each
-                var children = paragraphs[i].children;
-                for(var j = 0; j < children.length; j++){
+//                 // go through children and find the links of each
+//                 var children = paragraphs[i].children;
+//                 for(var j = 0; j < children.length; j++){
 
-                    // if the link does NOT go to a definition or portal - add it to the list
-                    var curr = children[j];
-                    if(curr.name == 'a') {
+//                     // if the link does NOT go to a definition or portal - add it to the list
+//                     var curr = children[j];
+//                     if(curr.name == 'a') {
 
-                        if(curr.attribs.title){
-                            // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
-                            // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
-                                console.log(curr);
-                                links.push([curr.attribs.title, curr.attribs.href]);
-                            }
-                        } 
-                    }
-                }
-            }
-        }
+//                         if(curr.attribs.title){
+//                             // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
+//                             // portal links begin with "Portal" in their title
+//                             if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+//                                 console.log(curr);
+//                                 links.push([curr.attribs.title, curr.attribs.href]);
+//                             }
+//                         } 
+//                     }
+//                 }
+//             }
+//         }
 
-        // go through the list of links, find the first link that has NOT already been visited, and go there
-        for(var i = 0; i < links.length; i++){
+//         // go through the list of links, find the first link that has NOT already been visited, and go there
+//         for(var i = 0; i < links.length; i++){
 
-            // check to see if the link has been visited
-            var flag = visited.find(element => element == links[i][1]);
+//             // check to see if the link has been visited
+//             var flag = visited.find(element => element == links[i][1]);
 
-            // if the link has not been visited, add it to the history and go there
-            if(!flag) {
-                visited.push(links[i][1]);
-                url = 'https://en.wikipedia.org' + links[i][1];
-                output += `${links[i][0]} ------> `;
-                break;
-            }
-        }
+//             // if the link has not been visited, add it to the history and go there
+//             if(!flag) {
+//                 visited.push(links[i][1]);
+//                 url = 'https://en.wikipedia.org' + links[i][1];
+//                 output += `${links[i][0]} ------> `;
+//                 break;
+//             }
+//         }
 
-        console.log('\n\n\n\n');
-        counter++;
-    }
+//         console.log('\n\n\n\n');
+//         counter++;
+//     }
 
-    res.send(output);
-});
+//     res.send(output);
+// });
 
 
-app.get('/breadth', async (req, res) => {
-    console.log('Fetching data');
+// app.get('/breadth', async (req, res) => {
+//     console.log('Fetching data');
 
-    var output = '';
-    var counter = 0;
-    //var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
+//     var output = '';
+//     var counter = 0;
+//     //var url = 'https://en.wikipedia.org/wiki/Object_(philosophy)';
 
-    var url = 'https://en.wikipedia.org/wiki/Johnny_Depp';
+//     var url = 'https://en.wikipedia.org/wiki/Johnny_Depp';
 
-    var links = [];
-    var visited = [];
+//     var links = [];
+//     var visited = [];
 
-    while(url !== 'https://en.wikipedia.org/wiki/Reality') {
+//     while(url !== 'https://en.wikipedia.org/wiki/Reality') {
 
-        // grab the html for the page
-        var $ = await fetchData(url);
+//         // grab the html for the page
+//         var $ = await fetchData(url);
 
-        // grab an array of all the paragraphs on the page - this is where we want to search for links
-        var paragraphs = $('p', '.mw-parser-output');
+//         // grab an array of all the paragraphs on the page - this is where we want to search for links
+//         var paragraphs = $('p', '.mw-parser-output');
 
-        // go through paragraphs and find the children of each
-        for(var i = 0; i < paragraphs.length; i++){
+//         // go through paragraphs and find the children of each
+//         for(var i = 0; i < paragraphs.length; i++){
 
-            // ignore paragraphs that are children of tables
-            // the tables come before the main text on a Wikipedia page, and we want to ignore those
-            if(paragraphs[i].parent.name !== 'td'){
+//             // ignore paragraphs that are children of tables
+//             // the tables come before the main text on a Wikipedia page, and we want to ignore those
+//             if(paragraphs[i].parent.name !== 'td'){
 
-                // go through children and find the links of each
-                var children = paragraphs[i].children;
-                for(var j = 0; j < children.length; j++){
+//                 // go through children and find the links of each
+//                 var children = paragraphs[i].children;
+//                 for(var j = 0; j < children.length; j++){
 
-                    // if the link does NOT go to a definition or portal - add it to the list
-                    var curr = children[j];
-                    if(curr.name == 'a') {
+//                     // if the link does NOT go to a definition or portal - add it to the list
+//                     var curr = children[j];
+//                     if(curr.name == 'a') {
 
-                        if(curr.attribs.title){
-                            // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
-                            // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
-                                links.push([curr.attribs.title, curr.attribs.href]);
-                            }
-                        } 
-                    }
-                }
-            }
-        }
+//                         if(curr.attribs.title){
+//                             // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
+//                             // portal links begin with "Portal" in their title
+//                             if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1){
+//                                 links.push([curr.attribs.title, curr.attribs.href]);
+//                             }
+//                         } 
+//                     }
+//                 }
+//             }
+//         }
         
-        var flag = 1;
-        var next = 0;
+//         var flag = 1;
+//         var next = 0;
 
-        // find the next link that has NOT already been visited
-        while(flag) {
-            next = links.shift();
-            flag = visited.find(element => element == next[1]);
-        }
+//         // find the next link that has NOT already been visited
+//         while(flag) {
+//             next = links.shift();
+//             flag = visited.find(element => element == next[1]);
+//         }
 
-        visited.push(next[1]);
-        console.log(next[1]);
-        url = url = 'https://en.wikipedia.org' + next[1];
-        output += `${next[0]} --------> `;
+//         visited.push(next[1]);
+//         console.log(next[1]);
+//         url = url = 'https://en.wikipedia.org' + next[1];
+//         output += `${next[0]} --------> `;
 
-        counter++;
-    }
+//         counter++;
+//     }
 
-    res.send(output);
-});
+//     res.send(output);
+// });
 
 
 
@@ -191,52 +193,26 @@ app.get('/bidirectional', async (req, res) => {
 
     while(b) {
 
-        /*
-            visit the next page in the start queue and push all the links on the queue 
-        */
-
         // grab the html for the start page
         var $ = await fetchData(startUrl);
 
-        // grab an array of all the paragraphs on the page - this is where we want to search for links
+        // create array of all the paragraphs on the page
         var paragraphs = $('p', '.mw-parser-output');
 
-        // go through paragraphs and find the children of each
-        for(var i = 0; i < paragraphs.length; i++){
+        // use the paragraphs array to find the links and add them to the queue
+        var temp = createQueue(paragraphs, startUrl);
+        startQueue = startQueue.concat(temp);
 
-            // ignore paragraphs that are children of tables
-            // the tables come before the main text on a Wikipedia page, and we want to ignore those
-            if(paragraphs[i].parent.name !== 'td'){
-
-                // go through children and find the links of each
-                var children = paragraphs[i].children;
-                for(var j = 0; j < children.length; j++){
-
-                    // if the link does NOT go to a definition, portal, or redirect - add it to the list
-                    var curr = children[j];
-                    if(curr.name == 'a') {
-
-                        if(curr.attribs.title){
-                            // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
-                            // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1 && curr.attribs.class !== 'mw-redirect'){
-                                startQueue.push([curr.attribs.title, curr.attribs.href, startUrl.slice(24)]);
-                            }
-                        } 
-                    }
-                }
-            }
-        }
 
         /*
             find the next link that has NOT been visited
             check to see if this link is in the end queue
-                if it is, we have our path
+                if it is, we have found the common path
                 if not, continue on
         */
 
         var flag = 1;
-        var next = 0;
+        var next;
 
         // find the next link that has NOT already been visited
         while(flag) {
@@ -244,54 +220,37 @@ app.get('/bidirectional', async (req, res) => {
             flag = startVisited.find(element => element[1] == next[1]);
         }
 
+        // add this link to the array of visited sites so we don't go there again
         startVisited.push(next);
         console.log(next);
-        startUrl = 'https://en.wikipedia.org' + next[1];
-        startOutput += `${next[0]} --------> `;
 
+        // set the next URL to be visited
+        startUrl = 'https://en.wikipedia.org' + next[1];
+
+        // check to see if the link is in the end queue 
         check = endQueue.find(element => element[1] == next[1]);
+
+        // if the link was in the end queue, then we have discovered a common path
         if(check){
+
+            // break the loop - we have finished traversing pages
             b = false;
-            output = check;
-            //startOutput += `${endQueue[check]}`;
         }
 
-        // ----------------------------- //
 
 
 
         // grab the html for the destination page
         var $ = await fetchData(endUrl);
 
-        // grab an array of all the paragraphs on the page - this is where we want to search for links
+        // create an array of all the paragraphs on the page
         var paragraphs = $('p', '.mw-parser-output');
 
-        // go through paragraphs and find the children of each
-        for(var i = 0; i < paragraphs.length; i++){
+        // use the paragraphs array to find the links on the page and add them to the queue
+        var temp = createQueue(paragraphs, endUrl);
+        endQueue = endQueue.concat(temp);
 
-            // ignore paragraphs that are children of tables
-            // the tables come before the main text on a Wikipedia page, and we want to ignore those
-            if(paragraphs[i].parent.name !== 'td'){
 
-                // go through children and find the links of each
-                var children = paragraphs[i].children;
-                for(var j = 0; j < children.length; j++){
-
-                    // if the link does NOT go to a definition or portal - add it to the list
-                    var curr = children[j];
-                    if(curr.name == 'a') {
-
-                        if(curr.attribs.title){
-                            // definitions begin with "wikt" in their title -> for example: 'wikt:entity' would lead to a definition
-                            // portal links begin with "Portal" in their title
-                            if(curr.attribs.title.indexOf('wikt') == -1 && curr.attribs.title.indexOf('Portal') == -1 && curr.attribs.class !== 'mw-redirect'){
-                                endQueue.push([curr.attribs.title, curr.attribs.href, endUrl.slice(24)]);
-                            }
-                        } 
-                    }
-                }
-            }
-        }
 
         /*
             find the next link that has NOT been visited
@@ -309,34 +268,34 @@ app.get('/bidirectional', async (req, res) => {
            flag = endVisited.find(element => element[1] == next[1]);
        }
 
+       // add the link to the list of visited pages
        endVisited.push(next);
        console.log(next);
-       endUrl = 'https://en.wikipedia.org' + next[1];
-       endOutput = `${next[0]} <-------- ` + endOutput;
 
+       // set the next URL to be visited
+       endUrl = 'https://en.wikipedia.org' + next[1];
+
+       // check to see if the link is in the startQueue
        check = startQueue.find(element => element[1] == next[1]);
+
+       // if the link is in the start queue - we have found a common path
        if(check){
-           b = false;
-           //endOutput += `${startQueue[check]}`;
-           output = check;
+
+            // break the loop - we have finished traversing pages
+            b = false;
        } 
     }
 
-    // find path from check back to startUrl
+
+    // find the path from the common page back to startUrl
 
     var search = check[1];
     var startArray = [];
-    var index;
     var found;
-
-    console.log('\n\n\n\n--------------\n\n\n\n');
-
-    console.log(search);
-
     var searchVisited = [];
 
     while(search !== oneUrl) {
-        // find the index of search within the start queue
+       
         found = startQueue.find(element => element[1] == search && !searchVisited.includes(element[1]));
 
         if(found) {
@@ -357,7 +316,7 @@ app.get('/bidirectional', async (req, res) => {
         searchVisited.push(search);
     }
 
-    // find path from check to endUrl
+    // find the path from the common page back to endUrl
 
     var search = check[1];
     var endArray = [];
@@ -366,7 +325,7 @@ app.get('/bidirectional', async (req, res) => {
     searchVisited = [];
 
     while(search !== twoUrl) {
-        // find the index of search within the start queue
+
         found = endQueue.find(element => element[1] == search && !searchVisited.includes(element[1]));
 
         if(found) {
@@ -387,6 +346,8 @@ app.get('/bidirectional', async (req, res) => {
         searchVisited.push(search);
     }
 
+
+    // generate the ouput to send to the page
 
     var start = oneUrl.slice(6);
     var copyStart = "";

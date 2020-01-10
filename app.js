@@ -396,26 +396,34 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function generateSong(notes) {
+    var song = [];
+
+    for(var i = 0; i < 4; i++){
+        var base = getRandomInt(1, notes.length - 2);
+        song.push(base - 1);
+        song.push(base);
+        song.push(base + 1);
+    }
+
+    return song;
+}
+
 app.get('/sound', async (req, res) => {
-    var index;
-    var counter = 0;
+
+    var index = 0;
+    var offset = 1;
 
     setInterval(function(){ 
-        index = getRandomInt(0, notes.length - 1);
-        player.play(`./media/${notes[index]}`, { timeout: 2000 }, (err) => {
+        
+        player.play(`./media/${notes[index]}`, (err) => {
             if(err) {
                 console.log("error");
             }
         });
-    }, 500);
-
-    // while(counter < 100){
-    //     index = getRandomInt(0, notes.length - 1);
-    //     player.play(`./media/${notes[index]}`, { timeout: 2000 }, (err) => {
-    //         if(err) {
-    //             console.log("error");
-    //         }
-    //     });
-    //     counter++;
-    // }
+        index += offset;
+        if(index == notes.length  || index == 0){
+            offset = -offset;
+        }
+    }, 100);
 })
